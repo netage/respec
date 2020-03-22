@@ -309,8 +309,8 @@ function getDefnName(defn) {
 }
 
 /**
- * @param {Element} idlElement 
- * @param {number} index 
+ * @param {Element} idlElement
+ * @param {number} index
  */
 function renderWebIDL(idlElement, index) {
   let parse;
