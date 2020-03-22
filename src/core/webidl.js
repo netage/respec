@@ -308,6 +308,10 @@ function getDefnName(defn) {
   }
 }
 
+/**
+ * @param {Element} idlElement 
+ * @param {number} index 
+ */
 function renderWebIDL(idlElement, index) {
   let parse;
   try {
@@ -326,9 +330,8 @@ function renderWebIDL(idlElement, index) {
   }
   // we add "idl" as the canonical match, so both "webidl" and "idl" work
   idlElement.classList.add("def", "idl");
-  const html = webidl2.write(parse, { templates });
-  const render = html.bind(idlElement);
-  render`${html}`;
+  const highlights = webidl2.write(parse, { templates });
+  html.bind(idlElement)`${highlights}`;
   idlElement.querySelectorAll("[data-idl]").forEach(elem => {
     if (elem.dataset.dfnFor) {
       return;
