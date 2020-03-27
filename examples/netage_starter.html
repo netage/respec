@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <script src='../builds/respec-netage.js' async class='remove'></script>
+    <script class='remove'>
+      var respecConfig = {
+        specStatus: "NETAGE-BASIC",
+        edDraftURI: "http://example.com/draft",
+        editors: [{
+          name: "Author 1",
+          url: "http://www.netage.nl",
+        }],
+        github: "https://github.com/user/my-awesome-api",
+      };
+    </script>
+    <title>Test</title>
+  </head>
+  <body>
+    <h1>My Awesome API</h1>
+    <section id='abstract'>
+      <p>
+        This is required.
+      </p>
+    </section>
+    <section id='sotd'>
+      <p>
+        This is required.
+      </p>
+    </section>
+    <section data-dfn-for="Foo" data-link-for="Foo">
+      <h2>Start your spec!</h2>
+      <pre class="idl">
+      interface Foo {
+        attribute Bar bar;
+        void doTheFoo();
+      };
+      </pre>
+      <section>
+        <h2><dfn>bar</dfn> attribute</h2>
+        <p>When getting, the <a>bar</a> attribute returns you a 🍹.</p>
+      </section>
+      <section>
+        <h2><dfn>doTheFoo(DOMString thing)</dfn> method</h2>
+        <p>When called, <code>doTheFoo(<var>thing</var>)</code> it MUST behave as follows:</p>
+        <ol class="algorithm">
+          <li>If <var>thing</var>....</li>
+          <li>Let <var>someProp</var>... of the [[!DOM]] spec.</li>
+        </ol>
+      </section>
+    </section>
+    <section id='conformance'>
+      <!-- This section is filled automatically by ReSpec. -->
+    </section>
+  </body>
+</html>
