@@ -17,7 +17,7 @@ export async function run(conf) {
     }
   }
   const trLatestUri = conf.shortName
-    ? `https://www.w3.org/TR/${conf.shortName}/`
+    ? `https://www.netage.nl/TR/${conf.shortName}/`
     : null;
   switch (conf.canonicalURI) {
     case "edDraft":
@@ -100,8 +100,8 @@ async function addJSONLDInfo(conf, doc) {
     datePublished: conf.dashDate,
     /** @type {{ name: string, url?: string } | { name: string, url?: string }[]} */
     copyrightHolder: {
-      name: "World Wide Web Consortium",
-      url: "https://www.w3.org/",
+      name: "Netage B.V.",
+      url: "https://www.netage.nl/",
     },
     discussionUrl: conf.issueBase,
     alternativeHeadline: conf.subtitle,

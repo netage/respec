@@ -20,7 +20,7 @@ const netageDefaults = {
   license: "w3c-software-doc",
   logos: [
     {
-      src: "../netage_resources/logo.png",
+      src: "https://netage.github.io/respec_resources/logo.png",
       alt: "Netage",
       height: 160,
       width: 258,
