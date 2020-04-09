@@ -173,6 +173,7 @@ const noTrackStatus = [
   "finding",
   "MO",
   "unofficial",
+  "NETAGE-BASIC",
 ];
 const cgbg = ["CG-DRAFT", "CG-FINAL", "BG-DRAFT", "BG-FINAL"];
 const precededByAn = ["ED", "IG-NOTE"];
@@ -313,7 +314,7 @@ export function run(conf) {
   if (conf.specStatus === "Member-SUBM") publishSpace = "Submission";
   else if (conf.specStatus === "Team-SUBM") publishSpace = "TeamSubmission";
   if (conf.isRegular)
-    conf.thisVersion = `https://www.w3.org/${publishSpace}/${conf.publishDate.getUTCFullYear()}/${
+    conf.thisVersion = `https://www.xyz.org/${publishSpace}/${conf.publishDate.getUTCFullYear()}/${
       conf.maturity
     }-${conf.shortName}-${concatDate(conf.publishDate)}/`;
   if (conf.specStatus === "ED") conf.thisVersion = conf.edDraftURI;
