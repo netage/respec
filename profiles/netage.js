@@ -9,7 +9,6 @@ const modules = [
   import("../src/core/base-runner.js"),
   import("../src/core/ui.js"),
   import("../src/core/location-hash.js"),
-  import("../src/core/l10n.js"),
   import("../src/netage/defaults.js"),
   import("../src/core/style.js"),
   import("../src/netage/style.js"),

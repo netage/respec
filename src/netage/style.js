@@ -83,7 +83,7 @@ function createResourceHints() {
     },
     {
       hint: "preload", // all specs show the logo.
-      href: "../netage_resources/logo.png",
+      href: "https://cloudbox.netage.nl/f/53b55b7650994d1f8528/?dl=1",
       as: "image",
     },
   ]
@@ -125,21 +125,21 @@ export function run(conf) {
   // Figure out which style file to use.
   switch (conf.specStatus.toUpperCase()) {
     case "NETAGE-CV":
-      styleFile += "NETAGE-CV.css";
+      styleFile += "https://netage.github.io/respec_resources/styles/NETAGE-CV.css";
       break;
     case "NETAGE-LD":
-      styleFile += "NETAGE-LD.css";
+      styleFile += "https://netage.github.io/respec_resources/styles/NETAGE-LD.css";
       break;
     case "NETAGE-FINAL":
-      styleFile += "NETAGE-FINAL.css";
+      styleFile += "https://netage.github.io/respec_resources/styles/NETAGE-FINAL.css";
       break;
     case "NETAGE-BASIC":
-      styleFile += "NETAGE-BASIC.css";
+      styleFile += "https://netage.github.io/respec_resources/styles/NETAGE-BASIC.css";
       break;
     default:
-      styleFile = "NETAGE-BASIC.css";
+      styleFile = "https://netage.github.io/respec_resources/styles/NETAGE-BASIC.css";
   }
-
+  console.log(styleFile);
   if (!conf.noToc) {
     sub(
       "end-all",
@@ -149,6 +149,6 @@ export function run(conf) {
       { once: true }
     );
   }
-  const finalStyleURL = `../netage_resources/styles/${styleFile}`;
-  linkCSS(document, finalStyleURL);
+  //const finalStyleURL = `../netage_resources/styles/${styleFile}`;
+  linkCSS(document, styleFile);
 }
