@@ -315,9 +315,9 @@ function(e){return e.join(X).replace(ae,de).replace(ie,le)})(t),r=e.transform;r&
     ${t}
   `}(t):e.isTagFinding?t.additionalContent:e.isNoTrack?function(e,t){const{isMO:n}=e,{additionalContent:r}=t;return Yt`
     <p>
-      This document is merely a W3C-internal
+      This document is merely a Netage-internal
       ${n?"member-confidential":""} document. It has no official standing
-      of any kind and does not represent consensus of the W3C Membership.
+      of any kind and does not represent consensus with related parties.
     </p>
     ${r}
   `}(e,t):Yt`
