@@ -174,9 +174,9 @@ function renderIsNoTrack(conf, opts) {
   const { additionalContent } = opts;
   return html`
     <p>
-      This document is merely a W3C-internal
+      This document is merely a Netage-internal
       ${isMO ? "member-confidential" : ""} document. It has no official standing
-      of any kind and does not represent consensus of the W3C Membership.
+      of any kind and does not represent consensus with related parties.
     </p>
     ${additionalContent}
   `;

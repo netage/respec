@@ -72,6 +72,7 @@
   "scripts": {
     "build:geonovum-debug": "npm run build:geonovum -- --debug",
     "build:geonovum": "node ./tools/builder.js --profile=geonovum",
+    "build:netage": "node ./tools/builder.js --profile=netage",
     "build:w3c-debug": "npm run build:w3c -- --debug",
     "build:w3c-with-jquery": "node ./tools/builder.js --profile=w3c-common",
     "build:w3c": "node ./tools/builder.js --profile=w3c",
