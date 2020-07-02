@@ -68,6 +68,7 @@
     "babel:build": "babel src -d js --source-maps -q",
     "babel:watch": "babel src -d js --watch --source-maps",
     "build:respec-w3c-common": "node ./tools/builder.js --profile=w3c-common",
+    "build:netage": "node ./tools/builder.js --profile=netage",
     "build:components": "npm run copydeps && npm run babel:build",
     "build": "snyk protect && npm run build:components",
     "copydeps": "node ./tools/copydeps.js",
