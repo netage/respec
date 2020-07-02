@@ -1,0 +1,55 @@
+// @ts-check
+/**
+ * Sets the defaults for W3C specs
+ */
+export const name = "w3c/defaults";
+import { coreDefaults } from "../core/defaults.js";
+import { definitionMap } from "../core/dfn-map.js";
+import linter from "../core/linter.js";
+import { rule as privsecSectionRule } from "../core/linter-rules/privsec-section.js";
+import { rule as wptTestsExist } from "../core/linter-rules/wpt-tests-exist.js";
+
+linter.register(privsecSectionRule, wptTestsExist);
+
+const netageDefaults = {
+  lint: {
+    "privsec-section": true,
+    "wpt-tests-exist": false,
+  },
+  doJsonLd: false,
+  license: "w3c-software-doc",
+  logos: [
+    {
+      src: "https://netage.github.io/respec_resources/logo.png",
+      alt: "Netage",
+      height: 160,
+      width: 258,
+      url: "https://www.netage.nl/",
+    },
+  ],
+  xref: true,
+  prependW3C: false
+};
+
+export function run(conf) {
+  // assign the defaults
+  const lint =
+    conf.lint === false
+      ? false
+      : {
+          ...coreDefaults.lint,
+          ...netageDefaults.lint,
+          ...conf.lint,
+        };
+  Object.assign(conf, {
+    ...coreDefaults,
+    ...netageDefaults,
+    ...conf,
+    lint,
+  });
+
+  // TODO: eventually, we want to remove this.
+  // It's here for legacy support of json-ld specs
+  // see https://github.com/w3c/respec/issues/2019
+  Object.assign(conf, { ...Object.fromEntries(definitionMap) });
+}
