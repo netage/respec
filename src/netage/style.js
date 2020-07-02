@@ -1,13 +1,12 @@
-// @ts-check
 /* jshint strict: true, browser:true, jquery: true */
 // Module w3c/style
 // Inserts a link to the appropriate W3C style for the specification's maturity level.
 // CONFIGURATION
 //  - specStatus: the short code for the specification's maturity level or type (required)
 
-import { createResourceHint, linkCSS, toKeyValuePairs } from "../core/utils.js";
-import { pub, sub } from "../core/pubsubhub.js";
-export const name = "w3c/style";
+import { createResourceHint, linkCSS, toKeyValuePairs } from "../core/utils";
+import { pub, sub } from "../core/pubsubhub";
+export const name = "netage/style";
 function attachFixupScript(doc, version) {
   const script = doc.createElement("script");
   if (location.hash) {
@@ -23,13 +22,11 @@ function attachFixupScript(doc, version) {
   doc.body.appendChild(script);
 }
 
-/**
- * Make a best effort to attach meta viewport at the top of the head.
- * Other plugins might subsequently push it down, but at least we start
- * at the right place. When ReSpec exports the HTML, it again moves the
- * meta viewport to the top of the head - so to make sure it's the first
- * thing the browser sees. See js/ui/save-html.js.
- */
+// Make a best effort to attach meta viewport at the top of the head.
+// Other plugins might subsequently push it down, but at least we start
+// at the right place. When ReSpec exports the HTML, it again moves the
+// meta viewport to the top of the head - so to make sure it's the first
+// thing the browser sees. See js/ui/save-html.js.
 function createMetaViewport() {
   const meta = document.createElement("meta");
   meta.name = "viewport";
@@ -45,7 +42,7 @@ function createMetaViewport() {
 function createBaseStyle() {
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = "https://www.w3.org/StyleSheets/TR/2016/base.css";
+  link.href = "https://docs.netage.nl/respec_resources/styles/base.css";
   link.classList.add("removeOnSave");
   return link;
 }
@@ -68,23 +65,14 @@ function selectStyleVersion(styleVersion) {
 function createResourceHints() {
   const resourceHints = [
     {
-      hint: "preconnect", // for W3C styles and scripts.
-      href: "https://www.netage.nl",
-    },
-    {
       hint: "preload", // all specs need it, and we attach it on end-all.
       href: "https://www.w3.org/scripts/TR/2016/fixup.js",
       as: "script",
     },
     {
       hint: "preload", // all specs include on base.css.
-      href: "https://www.w3.org/StyleSheets/TR/2016/base.css",
+      href: "https://docs.netage.nl/respec_resources/styles/base.css",
       as: "style",
-    },
-    {
-      hint: "preload", // all specs show the logo.
-      href: "https://cloudbox.netage.nl/f/53b55b7650994d1f8528/?dl=1",
-      as: "image",
     },
   ]
     .map(createResourceHint)
@@ -115,8 +103,8 @@ function styleMover(linkURL) {
 
 export function run(conf) {
   if (!conf.specStatus) {
-    const warn = "`respecConfig.specStatus` missing. Defaulting to 'NETAGE-BASIC'.";
-    conf.specStatus = "NETAGE-BASIC";
+    const warn = "`respecConfig.specStatus` missing. Defaulting to 'base'.";
+    conf.specStatus = "base";
     pub("warn", warn);
   }
 
@@ -125,30 +113,36 @@ export function run(conf) {
   // Figure out which style file to use.
   switch (conf.specStatus.toUpperCase()) {
     case "NETAGE-CV":
-      styleFile += "https://netage.github.io/respec_resources/styles/NETAGE-CV.css";
+      styleFile += "https://docs.netage.nl/respec_resources/styles/NETAGE-CV.css";
       break;
     case "NETAGE-LD":
-      styleFile += "https://netage.github.io/respec_resources/styles/NETAGE-LD.css";
+      styleFile += "https://docs.netage.nl/respec_resources/styles/NETAGE-LD.css";
       break;
     case "NETAGE-FINAL":
-      styleFile += "https://netage.github.io/respec_resources/styles/NETAGE-FINAL.css";
+      styleFile += "https://docs.netage.nl/respec_resources/styles/NETAGE-FINAL.css";
       break;
     case "NETAGE-BASIC":
-      styleFile += "https://netage.github.io/respec_resources/styles/NETAGE-BASIC.css";
+      styleFile += "https://docs.netage.nl/respec_resources/styles/NETAGE-BASIC.css";
       break;
     default:
-      styleFile = "https://netage.github.io/respec_resources/styles/NETAGE-BASIC.css";
+      styleFile = "https://docs.netage.nl/respec_resources/styles/NETAGE-BASIC.css";
   }
-  console.log(styleFile);
-  if (!conf.noToc) {
+  // Select between released styles and experimental style.
+  const version = selectStyleVersion(conf.useExperimentalStyles || "2016");
+  // Attach W3C fixup script after we are done.
+  /*if (version && !conf.noToc) {
     sub(
       "end-all",
       () => {
-        attachFixupScript(document, "2016");
+        attachFixupScript(document, version);
       },
       { once: true }
     );
-  }
-  //const finalStyleURL = `../netage_resources/styles/${styleFile}`;
+  }*/
+  const finalVersionPath = version ? `${version}/` : "";
+  
   linkCSS(document, styleFile);
+  // Make sure the W3C stylesheet is the last stylesheet, as required by W3C Pub Rules.
+  const moveStyle = styleMover(finalStyleURL);
+  sub("beforesave", moveStyle);
 }

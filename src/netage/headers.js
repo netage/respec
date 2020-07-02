@@ -1,4 +1,6 @@
 // @ts-check
+/* jshint forin: false */
+
 // Module w3c/headers
 // Generate the headers material based on the provided configuration.
 // CONFIGURATION
@@ -34,9 +36,12 @@
 //          - width: optional width of the logo (<img width=>)
 //          - url: the URI to the organization represented by the logo (target of <a href=>)
 //          - id: optional id for the logo, permits custom CSS (wraps logo in <span id=>)
-//          - each logo element must specify either src or alt
+//          - each logo element must specifiy either src or alt
 //  - testSuiteURI: the URI to the test suite, if any
 //  - implementationReportURI: the URI to the implementation report, if any
+//  - bugTracker: and object with the following details
+//      - open: pointer to the list of open bugs
+//      - new: pointer to where to raise new bugs
 //  - noRecTrack: set to true if this document is not intended to be on the Recommendation track
 //  - edDraftURI: the URI of the Editor's Draft for this document, if any. Required if
 //      specStatus is set to "ED".
@@ -77,20 +82,21 @@
 //          - href: a URL for the value (e.g., "https://foo.com/issues"). Optional.
 //          - class: a string representing CSS classes. Optional.
 //  - license: can be one of the following
+//      - "w3c", currently the default (restrictive) license
 //      - "cc-by", which is experimentally available in some groups (but likely to be phased out).
 //          Note that this is a dual licensing regime.
 //      - "cc0", an extremely permissive license. It is only recommended if you are working on a document that is
 //          intended to be pushed to the WHATWG.
 //      - "w3c-software", a permissive and attributions license (but GPL-compatible).
-//      - "w3c-software-doc", (default) the W3C Software and Document License
+//      - "w3c-software-doc", the W3C Software and Document License
 //            https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document
-import { ISODate, concatDate, htmlJoinAnd } from "../core/utils.js";
-import cgbgHeadersTmpl from "./templates/cgbg-headers.js";
-import cgbgSotdTmpl from "./templates/cgbg-sotd.js";
-import headersTmpl from "./templates/headers.js";
-import { hyperHTML } from "../core/import-maps.js";
-import { pub } from "../core/pubsubhub.js";
-import sotdTmpl from "./templates/sotd.js";
+import { ISODate, concatDate, joinAnd } from "../core/utils";
+import cgbgHeadersTmpl from "./templates/cgbg-headers";
+import cgbgSotdTmpl from "./templates/cgbg-sotd";
+import headersTmpl from "./templates/headers";
+import hyperHTML from "hyperhtml";
+import { pub } from "../core/pubsubhub";
+import sotdTmpl from "./templates/sotd";
 
 export const name = "w3c/headers";
 
@@ -161,19 +167,18 @@ const status2long = {
   "FPWD-NOTE": "First Public Working Group Note",
   "LC-NOTE": "Last Call Working Draft",
 };
-const maybeRecTrack = ["FPWD", "WD"];
-const recTrackStatus = ["FPLC", "LC", "CR", "PR", "PER", "REC"];
+const recTrackStatus = ["FPWD", "WD", "FPLC", "LC", "CR", "PR", "PER", "REC"];
 const noTrackStatus = [
   "base",
-  "BG-DRAFT",
-  "BG-FINAL",
-  "CG-DRAFT",
-  "CG-FINAL",
-  "draft-finding",
-  "finding",
   "MO",
   "unofficial",
-  "NETAGE-BASIC",
+  "base",
+  "finding",
+  "draft-finding",
+  "CG-DRAFT",
+  "CG-FINAL",
+  "BG-DRAFT",
+  "BG-FINAL",
 ];
 const cgbg = ["CG-DRAFT", "CG-FINAL", "BG-DRAFT", "BG-FINAL"];
 const precededByAn = ["ED", "IG-NOTE"];
@@ -262,10 +267,13 @@ export function run(conf) {
       const msg =
         "Web Platform Tests have moved to a new Github Organization at https://github.com/web-platform-tests. " +
         "Please update your [`testSuiteURI`](https://github.com/w3c/respec/wiki/testSuiteURI) to point to the " +
-        `new tests repository (e.g., https://github.com/web-platform-tests/wpt/${conf.shortName} ).`;
+        `new tests repository (e.g., https://github.com/web-platform-tests/wpt/${
+          conf.shortName
+        } ).`;
       pub("warn", msg);
     }
   }
+  conf.title = document.title || "No Title";
   if (!conf.subtitle) conf.subtitle = "";
   conf.publishDate = validateDateAndRecover(
     conf,
@@ -277,7 +285,7 @@ export function run(conf) {
   conf.isNoTrack = noTrackStatus.includes(conf.specStatus);
   conf.isRecTrack = conf.noRecTrack
     ? false
-    : recTrackStatus.concat(maybeRecTrack).includes(conf.specStatus);
+    : recTrackStatus.includes(conf.specStatus);
   conf.isMemberSubmission = conf.specStatus === "Member-SUBM";
   if (conf.isMemberSubmission) {
     const memSubmissionLogo = {
@@ -314,12 +322,14 @@ export function run(conf) {
   if (conf.specStatus === "Member-SUBM") publishSpace = "Submission";
   else if (conf.specStatus === "Team-SUBM") publishSpace = "TeamSubmission";
   if (conf.isRegular)
-    conf.thisVersion = `https://www.xyz.org/${publishSpace}/${conf.publishDate.getUTCFullYear()}/${
+    conf.thisVersion = `https://www.w3.org/${publishSpace}/${conf.publishDate.getUTCFullYear()}/${
       conf.maturity
     }-${conf.shortName}-${concatDate(conf.publishDate)}/`;
   if (conf.specStatus === "ED") conf.thisVersion = conf.edDraftURI;
   if (conf.isRegular)
-    conf.latestVersion = `https://www.w3.org/${publishSpace}/${conf.shortName}/`;
+    conf.latestVersion = `https://www.w3.org/${publishSpace}/${
+      conf.shortName
+    }/`;
   if (conf.isTagFinding) {
     conf.latestVersion = `https://www.w3.org/2001/tag/doc/${conf.shortName}`;
     conf.thisVersion = `${conf.latestVersion}-${ISODate.format(
@@ -371,47 +381,53 @@ export function run(conf) {
   }
   if (conf.prevRecShortname && !conf.prevRecURI)
     conf.prevRecURI = `https://www.w3.org/TR/${conf.prevRecShortname}`;
-  const peopCheck = function (it) {
-    if (!it.name) pub("error", "All authors and editors must have a name.");
-    if (it.orcid) {
-      try {
-        it.orcid = normalizeOrcid(it.orcid);
-      } catch (e) {
-        pub("error", `"${it.orcid}" is not an ORCID. ${e.message}`);
-        // A failed orcid link could link to something outside of orcid,
-        // which would be misleading.
-        delete it.orcid;
-      }
-    }
-  };
-  if (!conf.formerEditors) conf.formerEditors = [];
-  if (conf.editors) {
-    conf.editors.forEach(peopCheck);
-    // Move any editors with retiredDate to formerEditors.
-    for (let i = 0; i < conf.editors.length; i++) {
-      const editor = conf.editors[i];
-      if ("retiredDate" in editor) {
-        conf.formerEditors.push(editor);
-        conf.editors.splice(i--, 1);
-      }
-    }
-  }
   if (!conf.editors || conf.editors.length === 0)
     pub("error", "At least one editor is required");
-  if (conf.formerEditors.length) {
+  const peopCheck = function(it) {
+    if (!it.name) pub("error", "All authors and editors must have a name.");
+  };
+  if (conf.editors) {
+    conf.editors.forEach(peopCheck);
+  }
+  if (conf.formerEditors) {
     conf.formerEditors.forEach(peopCheck);
   }
   if (conf.authors) {
     conf.authors.forEach(peopCheck);
   }
   conf.multipleEditors = conf.editors && conf.editors.length > 1;
-  conf.multipleFormerEditors = conf.formerEditors.length > 1;
+  conf.multipleFormerEditors =
+    Array.isArray(conf.formerEditors) && conf.formerEditors.length > 1;
   conf.multipleAuthors = conf.authors && conf.authors.length > 1;
   (conf.alternateFormats || []).forEach(it => {
     if (!it.uri || !it.label) {
       pub("error", "All alternate formats must have a uri and a label.");
     }
   });
+  conf.multipleAlternates =
+    conf.alternateFormats && conf.alternateFormats.length > 1;
+  conf.alternatesHTML =
+    conf.alternateFormats &&
+    joinAnd(conf.alternateFormats, alt => {
+      let optional =
+        alt.hasOwnProperty("lang") && alt.lang ? ` hreflang='${alt.lang}'` : "";
+      optional +=
+        alt.hasOwnProperty("type") && alt.type ? ` type='${alt.type}'` : "";
+      return `<a rel='alternate' href='${alt.uri}'${optional}>${alt.label}</a>`;
+    });
+  if (conf.bugTracker) {
+    if (conf.bugTracker.new && conf.bugTracker.open) {
+      conf.bugTrackerHTML = `<a href='${conf.bugTracker.new}'>${
+        conf.l10n.file_a_bug
+      }</a> ${conf.l10n.open_parens}<a href='${conf.bugTracker.open}'>${
+        conf.l10n.open_bugs
+      }</a>${conf.l10n.close_parens}`;
+    } else if (conf.bugTracker.open) {
+      conf.bugTrackerHTML = `<a href='${conf.bugTracker.open}'>open bugs</a>`;
+    } else if (conf.bugTracker.new) {
+      conf.bugTrackerHTML = `<a href='${conf.bugTracker.new}'>file a bug</a>`;
+    }
+  }
   if (conf.copyrightStart && conf.copyrightStart == conf.publishYear)
     conf.copyrightStart = "";
   conf.longStatus = status2long[conf.specStatus];
@@ -435,7 +451,7 @@ export function run(conf) {
   if (conf.isRec && !conf.errata)
     pub("error", "Recommendations must have an errata link.");
   conf.notRec = conf.specStatus !== "REC";
-  conf.prependW3C = false;
+  conf.prependW3C = !conf.isUnofficial;
   conf.isED = conf.specStatus === "ED";
   conf.isCR = conf.specStatus === "CR";
   conf.isPR = conf.specStatus === "PR";
@@ -446,38 +462,21 @@ export function run(conf) {
   conf.dashDate = ISODate.format(conf.publishDate);
   conf.publishISODate = conf.publishDate.toISOString();
   conf.shortISODate = ISODate.format(conf.publishDate);
-  if (conf.hasOwnProperty("wgPatentURI") && !Array.isArray(conf.wgPatentURI)) {
-    Object.defineProperty(conf, "wgId", {
-      get() {
-        // it's always at "pp-impl" + 1
-        const urlParts = this.wgPatentURI.split("/");
-        const pos = urlParts.findIndex(item => item === "pp-impl") + 1;
-        return urlParts[pos] || "";
-      },
-    });
-  } else {
-    conf.wgId = conf.wgId ? conf.wgId : "";
-  }
+  Object.defineProperty(conf, "wgId", {
+    get() {
+      if (!this.hasOwnProperty("wgPatentURI")) {
+        return "";
+      }
+      // it's always at "pp-impl" + 1
+      const urlParts = this.wgPatentURI.split("/");
+      const pos = urlParts.findIndex(item => item === "pp-impl") + 1;
+      return urlParts[pos] || "";
+    },
+  });
   // configuration done - yay!
 
-  const options = {
-    get multipleAlternates() {
-      return conf.alternateFormats && conf.alternateFormats.length > 1;
-    },
-    get alternatesHTML() {
-      return (
-        conf.alternateFormats &&
-        htmlJoinAnd(conf.alternateFormats, alt => {
-          const lang = alt.hasOwnProperty("lang") && alt.lang ? alt.lang : null;
-          const type = alt.hasOwnProperty("type") && alt.type ? alt.type : null;
-          return hyperHTML`<a rel='alternate' href='${alt.uri}' hreflang='${lang}' type='${type}'>${alt.label}</a>`;
-        })
-      );
-    },
-  };
-
   // insert into document
-  const header = (conf.isCGBG ? cgbgHeadersTmpl : headersTmpl)(conf, options);
+  const header = (conf.isCGBG ? cgbgHeadersTmpl : headersTmpl)(conf);
   document.body.prepend(header);
   document.body.classList.add("h-entry");
 
@@ -519,21 +518,20 @@ export function run(conf) {
   }
   if (Array.isArray(conf.wg)) {
     conf.multipleWGs = conf.wg.length > 1;
-    conf.wgHTML = htmlJoinAnd(conf.wg, (wg, idx) => {
-      return hyperHTML`the <a href='${conf.wgURI[idx]}'>${wg}</a>`;
+    conf.wgHTML = joinAnd(conf.wg, (wg, idx) => {
+      return `the <a href='${conf.wgURI[idx]}'>${wg}</a>`;
     });
     const pats = [];
     for (let i = 0, n = conf.wg.length; i < n; i++) {
       pats.push(
-        hyperHTML`a <a href='${conf.wgPatentURI[i]}' rel='disclosure'>public list of any patent disclosures (${conf.wg[i]})</a>`
+        `a <a href='${conf.wgPatentURI[i]}' rel='disclosure'>` +
+          `public list of any patent disclosures  (${conf.wg[i]})</a>`
       );
     }
-    conf.wgPatentHTML = htmlJoinAnd(pats);
+    conf.wgPatentHTML = joinAnd(pats);
   } else {
     conf.multipleWGs = false;
-    if (conf.wg) {
-      conf.wgHTML = hyperHTML`the <a href='${conf.wgURI}'>${conf.wg}</a>`;
-    }
+    conf.wgHTML = `the <a href='${conf.wgURI}'>${conf.wg}</a>`;
   }
   if (conf.specStatus === "PR" && !conf.crEnd) {
     pub(
@@ -562,31 +560,19 @@ export function run(conf) {
   }
   conf.perEnd = validateDateAndRecover(conf, "perEnd");
   conf.humanPEREnd = W3CDate.format(conf.perEnd);
-  conf.recNotExpected =
-    conf.noRecTrack || conf.recNotExpected
-      ? true
-      : !conf.isRecTrack &&
-        conf.maturity == "WD" &&
-        conf.specStatus !== "FPWD-NOTE";
-  if (conf.noRecTrack && recTrackStatus.includes(conf.specStatus)) {
-    pub(
-      "error",
-      `Document configured as [\`noRecTrack\`](https://github.com/w3c/respec/wiki/noRecTrack), but its status ("${
-        conf.specStatus
-      }") puts it on the W3C Rec Track. Status cannot be any of: ${recTrackStatus.join(
-        ", "
-      )}. [More info](https://github.com/w3c/respec/wiki/noRecTrack).`
-    );
-  }
-  if (conf.isIGNote && !conf.charterDisclosureURI) {
+
+  conf.recNotExpected = conf.recNotExpected
+    ? true
+    : !conf.isRecTrack &&
+      conf.maturity == "WD" &&
+      conf.specStatus !== "FPWD-NOTE";
+  if (conf.isIGNote && !conf.charterDisclosureURI)
     pub(
       "error",
       "IG-NOTEs must link to charter's disclosure section using `charterDisclosureURI`."
     );
-  }
-  if (!sotd.classList.contains("override")) {
-    hyperHTML.bind(sotd)`${populateSoTD(conf, sotd)}`;
-  }
+
+  hyperHTML.bind(sotd)`${populateSoTD(conf, sotd)}`;
 
   if (!conf.implementationReportURI && conf.isCR) {
     pub(
@@ -647,12 +633,13 @@ function collectSotdContent(sotd, { isTagFinding = false }) {
   // that becomes the custom content.
   while (sotdClone.hasChildNodes()) {
     if (
-      isElement(sotdClone.firstChild) &&
-      sotdClone.firstChild.localName === "section"
+      !isElement(sotdClone.firstChild) ||
+      sotdClone.firstChild.localName !== "section"
     ) {
-      break;
+      additionalContent.appendChild(sotdClone.firstChild);
+      continue;
     }
-    additionalContent.appendChild(sotdClone.firstChild);
+    break;
   }
   if (isTagFinding && !additionalContent.hasChildNodes()) {
     pub(
@@ -666,43 +653,6 @@ function collectSotdContent(sotd, { isTagFinding = false }) {
     // Whatever sections are left, we throw at the end.
     additionalSections: sotdClone.childNodes,
   };
-}
-
-/**
- * @param {string} orcid Either an ORCID URL or just the 16-digit ID which comes after the /
- * @return {string} the full ORCID URL. Throws an error if the ID is invalid.
- */
-function normalizeOrcid(orcid) {
-  const orcidUrl = new URL(orcid, "https://orcid.org/");
-  if (orcidUrl.origin !== "https://orcid.org") {
-    throw new Error(
-      `The origin should be "https://orcid.org", not "${orcidUrl.origin}".`
-    );
-  }
-
-  // trailing slash would mess up checksum
-  const orcidId = orcidUrl.pathname.slice(1).replace(/\/$/, "");
-  if (!/^\d{4}-\d{4}-\d{4}-\d{3}(\d|X)$/.test(orcidId)) {
-    throw new Error(
-      `ORCIDs have the format "1234-1234-1234-1234", not "${orcidId}"`
-    );
-  }
-
-  // calculate checksum as per https://support.orcid.org/hc/en-us/articles/360006897674-Structure-of-the-ORCID-Identifier
-  const lastDigit = orcidId[orcidId.length - 1];
-  const remainder = orcidId
-    .split("")
-    .slice(0, -1)
-    .filter(c => /\d/.test(c))
-    .map(Number)
-    .reduce((acc, c) => (acc + c) * 2, 0);
-  const lastDigitInt = (12 - (remainder % 11)) % 11;
-  const lastDigitShould = lastDigitInt === 10 ? "X" : String(lastDigitInt);
-  if (lastDigit !== lastDigitShould) {
-    throw new Error(`"${orcidId}" has an invalid checksum.`);
-  }
-
-  return orcidUrl.href;
 }
 
 /**

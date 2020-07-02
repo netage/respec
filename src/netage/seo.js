@@ -1,23 +1,12 @@
-// @ts-check
 // Module w3c/seo
 // Manages SEO information for documents
 // e.g. set the canonical URL for the document if configured
-import { pub } from "../core/pubsubhub.js";
-import { resolveRef } from "../core/biblio.js";
+import { biblio } from "../core/biblio";
+import { pub } from "../core/pubsubhub";
 export const name = "w3c/seo";
-export async function run(conf) {
-  // Don't include a canonical URL for documents
-  // that haven't been published.
-  if (!conf.canonicalURI) {
-    switch (conf.specStatus) {
-      case "CG-DRAFT":
-      case "BG-DRAFT":
-      case "unofficial":
-        return;
-    }
-  }
+export function run(conf) {
   const trLatestUri = conf.shortName
-    ? `https://www.netage.nl/TR/${conf.shortName}/`
+    ? `https://www.w3.org/TR/${conf.shortName}/`
     : null;
   switch (conf.canonicalURI) {
     case "edDraft":
@@ -69,11 +58,12 @@ export async function run(conf) {
     document.head.appendChild(linkElem);
   }
   if (conf.doJsonLd) {
-    await addJSONLDInfo(conf, document);
+    addJSONLDInfo(conf, document);
   }
 }
 
 async function addJSONLDInfo(conf, doc) {
+  await doc.respecIsReady;
   // Content for JSON
   const type = ["TechArticle"];
   if (conf.rdfStatus) type.push(conf.rdfStatus);
@@ -94,14 +84,13 @@ async function addJSONLDInfo(conf, doc) {
     ],
     id: conf.canonicalURI || conf.thisVersion,
     type,
-    name: document.title,
+    name: conf.title,
     inLanguage: doc.documentElement.lang || "en",
     license: conf.licenseInfo.url,
     datePublished: conf.dashDate,
-    /** @type {{ name: string, url?: string } | { name: string, url?: string }[]} */
     copyrightHolder: {
-      name: "Netage B.V.",
-      url: "https://www.netage.nl/",
+      name: "World Wide Web Consortium",
+      url: "https://www.w3.org/",
     },
     discussionUrl: conf.issueBase,
     alternativeHeadline: conf.subtitle,
@@ -134,14 +123,8 @@ async function addJSONLDInfo(conf, doc) {
   }
 
   // normative and informative references
-  const citationIds = [
-    ...conf.normativeReferences,
-    ...conf.informativeReferences,
-  ];
-  const citationContents = await Promise.all(
-    citationIds.map(ref => resolveRef(ref))
-  );
-  jsonld.citation = citationContents
+  jsonld.citation = [...conf.normativeReferences, ...conf.informativeReferences]
+    .map(ref => biblio[ref])
     .filter(ref => typeof ref === "object")
     .map(addRef);
 
@@ -151,9 +134,7 @@ async function addJSONLDInfo(conf, doc) {
   doc.head.appendChild(script);
 }
 
-/**
- * Turn editors and authors into a list of JSON-LD relationships
- */
+// Turn editors and authors into a list of JSON-LD relationships
 function addPerson({ name, url, mailto, company, companyURL }) {
   const ed = {
     type: "Person",
@@ -170,28 +151,13 @@ function addPerson({ name, url, mailto, company, companyURL }) {
   return ed;
 }
 
-/**
- * Create a reference URL from the ref
- */
+// Create a reference URL from the ref
 function addRef(ref) {
   const { href: id, title: name, href: url } = ref;
-  const jsonld = {
+  return {
     id,
     type: "TechArticle",
     name,
     url,
   };
-  if (ref.authors) {
-    jsonld.creator = ref.authors.map(a => ({ name: a }));
-  }
-  if (ref.rawDate) {
-    jsonld.publishedDate = ref.rawDate;
-  }
-  if (ref.isbn) {
-    jsonld.identifier = ref.isbn;
-  }
-  if (ref.publisher) {
-    jsonld.publisher = { name: ref.publisher };
-  }
-  return jsonld;
 }
