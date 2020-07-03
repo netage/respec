@@ -15,4 +15,4 @@ js/ui/*.js
 js/w3c/templates/*
 js/w3c/*.js
 js/netage/**
-builds/netage*
+builds/*netage*

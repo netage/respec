@@ -2,7 +2,7 @@
 // Handle the abstract section properly.
 import { l10n, lang } from "../core/l10n";
 import { pub } from "../core/pubsubhub";
-export const name = "w3c/abstract";
+export const name = "netage/abstract";
 
 export async function run() {
   const abs = document.getElementById("abstract");

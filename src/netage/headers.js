@@ -91,14 +91,12 @@
 //      - "w3c-software-doc", the W3C Software and Document License
 //            https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document
 import { ISODate, concatDate, joinAnd } from "../core/utils";
-import cgbgHeadersTmpl from "./templates/cgbg-headers";
-import cgbgSotdTmpl from "./templates/cgbg-sotd";
 import headersTmpl from "./templates/headers";
 import hyperHTML from "hyperhtml";
 import { pub } from "../core/pubsubhub";
 import sotdTmpl from "./templates/sotd";
 
-export const name = "w3c/headers";
+export const name = "netage/headers";
 
 const W3CDate = new Intl.DateTimeFormat(["en-AU"], {
   timeZone: "UTC",
@@ -107,7 +105,7 @@ const W3CDate = new Intl.DateTimeFormat(["en-AU"], {
   day: "2-digit",
 });
 
-const status2maturity = {
+const status2maturity = {};/* {
   LS: "WD",
   LD: "WD",
   FPWD: "WD",
@@ -118,9 +116,9 @@ const status2maturity = {
   "LC-NOTE": "LC",
   "IG-NOTE": "NOTE",
   "WG-NOTE": "NOTE",
-};
+};*/
 
-const status2rdf = {
+const status2rdf ={};/* {
   NOTE: "w3p:NOTE",
   WD: "w3p:WD",
   LC: "w3p:LastCall",
@@ -129,59 +127,30 @@ const status2rdf = {
   REC: "w3p:REC",
   PER: "w3p:PER",
   RSCND: "w3p:RSCND",
-};
+};*/
 const status2text = {
-  NOTE: "Working Group Note",
-  "WG-NOTE": "Working Group Note",
-  "CG-NOTE": "Co-ordination Group Note",
-  "IG-NOTE": "Interest Group Note",
-  "Member-SUBM": "Member Submission",
-  "Team-SUBM": "Team Submission",
-  MO: "Member-Only Document",
-  ED: "Editor's Draft",
-  LS: "Living Standard",
-  LD: "Living Document",
-  FPWD: "First Public Working Draft",
-  WD: "Working Draft",
-  "FPWD-NOTE": "Working Group Note",
-  "WD-NOTE": "Working Draft",
-  "LC-NOTE": "Working Draft",
-  FPLC: "First Public and Last Call Working Draft",
-  LC: "Last Call Working Draft",
-  CR: "Candidate Recommendation",
-  PR: "Proposed Recommendation",
-  PER: "Proposed Edited Recommendation",
-  REC: "Recommendation",
-  RSCND: "Rescinded Recommendation",
   unofficial: "Unofficial Draft",
   base: "Document",
-  finding: "TAG Finding",
-  "draft-finding": "Draft TAG Finding",
-  "CG-DRAFT": "Draft Community Group Report",
-  "CG-FINAL": "Final Community Group Report",
-  "BG-DRAFT": "Draft Business Group Report",
-  "BG-FINAL": "Final Business Group Report",
+  "NETAGE-LD": "Netage Living Document",
+  "NETAGE-CV": "Netage CV Document",
+  "NETAGE-BASIC": "Netage Document",
+  "NETAGE-FINAL": "Netage Final Report"
 };
 const status2long = {
-  ...status2text,
-  "FPWD-NOTE": "First Public Working Group Note",
-  "LC-NOTE": "Last Call Working Draft",
+  ...status2text
 };
-const recTrackStatus = ["FPWD", "WD", "FPLC", "LC", "CR", "PR", "PER", "REC"];
+
+const recTrackStatus = [];//["FPWD", "WD", "FPLC", "LC", "CR", "PR", "PER", "REC"];
 const noTrackStatus = [
   "base",
-  "MO",
   "unofficial",
-  "base",
-  "finding",
-  "draft-finding",
-  "CG-DRAFT",
-  "CG-FINAL",
-  "BG-DRAFT",
-  "BG-FINAL",
+  "NETAGE-LD",
+  "NETAGE-CV",
+  "NETAGE-BASIC",
+  "NETAGE-FINAL"
 ];
-const cgbg = ["CG-DRAFT", "CG-FINAL", "BG-DRAFT", "BG-FINAL"];
-const precededByAn = ["ED", "IG-NOTE"];
+const cgbg = [];//["CG-DRAFT", "CG-FINAL", "BG-DRAFT", "BG-FINAL"];
+const precededByAn = [];//["ED", "IG-NOTE"];
 const licenses = {
   cc0: {
     name: "Creative Commons 0 Public Domain Dedication",
@@ -476,7 +445,7 @@ export function run(conf) {
   // configuration done - yay!
 
   // insert into document
-  const header = (conf.isCGBG ? cgbgHeadersTmpl : headersTmpl)(conf);
+  const header = headersTmpl(conf);
   document.body.prepend(header);
   document.body.classList.add("h-entry");
 
@@ -619,7 +588,7 @@ function populateSoTD(conf, sotd) {
       return `mailto:${conf.wgPublicList}-request@w3.org?subject=subscribe`;
     },
   };
-  const template = conf.isCGBG ? cgbgSotdTmpl : sotdTmpl;
+  const template = sotdTmpl;
   return template(conf, options);
 }
 

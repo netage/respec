@@ -7,20 +7,6 @@
 import { createResourceHint, linkCSS, toKeyValuePairs } from "../core/utils";
 import { pub, sub } from "../core/pubsubhub";
 export const name = "netage/style";
-function attachFixupScript(doc, version) {
-  const script = doc.createElement("script");
-  if (location.hash) {
-    script.addEventListener(
-      "load",
-      () => {
-        window.location.href = location.hash;
-      },
-      { once: true }
-    );
-  }
-  script.src = `https://www.w3.org/scripts/TR/${version}/fixup.js`;
-  doc.body.appendChild(script);
-}
 
 // Make a best effort to attach meta viewport at the top of the head.
 // Other plugins might subsequently push it down, but at least we start
@@ -45,21 +31,6 @@ function createBaseStyle() {
   link.href = "https://docs.netage.nl/respec_resources/styles/base.css";
   link.classList.add("removeOnSave");
   return link;
-}
-
-function selectStyleVersion(styleVersion) {
-  let version = "";
-  switch (styleVersion) {
-    case null:
-    case true:
-      version = "2016";
-      break;
-    default:
-      if (styleVersion && !isNaN(styleVersion)) {
-        version = styleVersion.toString().trim();
-      }
-  }
-  return version;
 }
 
 function createResourceHints() {
@@ -94,13 +65,6 @@ if (!document.head.querySelector("meta[name=viewport]")) {
 
 document.head.prepend(elements);
 
-function styleMover(linkURL) {
-  return exportDoc => {
-    const w3cStyle = exportDoc.querySelector(`head link[href="${linkURL}"]`);
-    exportDoc.querySelector("head").append(w3cStyle);
-  };
-}
-
 export function run(conf) {
   if (!conf.specStatus) {
     const warn = "`respecConfig.specStatus` missing. Defaulting to 'base'.";
@@ -127,22 +91,10 @@ export function run(conf) {
     default:
       styleFile = "https://docs.netage.nl/respec_resources/styles/NETAGE-BASIC.css";
   }
-  // Select between released styles and experimental style.
-  const version = selectStyleVersion(conf.useExperimentalStyles || "2016");
-  // Attach W3C fixup script after we are done.
-  /*if (version && !conf.noToc) {
-    sub(
-      "end-all",
-      () => {
-        attachFixupScript(document, version);
-      },
-      { once: true }
-    );
-  }*/
-  const finalVersionPath = version ? `${version}/` : "";
+  
   
   linkCSS(document, styleFile);
   // Make sure the W3C stylesheet is the last stylesheet, as required by W3C Pub Rules.
-  const moveStyle = styleMover(finalStyleURL);
+  
   sub("beforesave", moveStyle);
 }

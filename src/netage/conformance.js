@@ -6,7 +6,7 @@ import { joinAnd } from "../core/utils";
 import { pub } from "../core/pubsubhub";
 import { renderInlineCitation } from "../core/render-biblio";
 import { rfc2119Usage } from "../core/inlines";
-export const name = "w3c/conformance";
+export const name = "netage/conformance";
 
 /**
  * @param {Element} conformance

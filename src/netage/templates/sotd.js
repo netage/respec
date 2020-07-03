@@ -41,10 +41,8 @@ export default (conf, opts) => {
       : conf.isNoTrack
       ? html`
           <p>
-            This document is merely a W3C-internal
-            ${conf.isMO ? "member-confidential" : ""} document. It has no
-            official standing of any kind and does not represent consensus of
-            the W3C Membership.
+            This document is merely a Netage-internal document. It has no
+            official standing of any kind and does not represent consensus with the customer.
           </p>
           ${opts.additionalContent}
         `

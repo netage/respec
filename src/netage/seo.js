@@ -3,7 +3,7 @@
 // e.g. set the canonical URL for the document if configured
 import { biblio } from "../core/biblio";
 import { pub } from "../core/pubsubhub";
-export const name = "w3c/seo";
+export const name = "netage/seo";
 export function run(conf) {
   const trLatestUri = conf.shortName
     ? `https://www.w3.org/TR/${conf.shortName}/`
